@@ -1,3 +1,4 @@
+// Importez les dépendances nécessaires
 import React, { useState, useEffect } from 'react';
 import useAxios from '../utils/useAxios';
 import jwtDecode from 'jwt-decode';
@@ -23,36 +24,36 @@ function Todo() {
         });
     };
 
-    const [createTodo, setCreateTodo] = useState({ title: "", completed: "" });
+    const [createTodo, setCreateTodo] = useState({ title: "", deadline: "", completed: "" });
 
-    const handleNewTodoTitle = (event) => {
+    const handleNewTodoChange = (event) => {
         setCreateTodo({
             ...createTodo,
             [event.target.name]: event.target.value
         });
     };
 
-    const formSubmit = () => {
-        const formdata = new FormData();
-
-        formdata.append("user", user_id);
-        formdata.append("title", createTodo.title);
-        formdata.append("completed", false);
+    const formSubmit = async () => {
+        const formData = {
+            user: user_id,
+            title: createTodo.title,
+            deadline: createTodo.deadline,
+            completed: false
+        };
 
         try {
-            api.post(baseUrl + '/todo/' + user_id + '/', formdata).then((res) => {
-                console.log(res.data);
-                Swal.fire({
-                    title: "Todo Added",
-                    icon: "success",
-                    toast: true,
-                    timer: 2000,
-                    position: "top-right",
-                    timerProgressBar: true,
-                });
-                fetchTodos();
-                setCreateTodo({ title: "", completed: "" });
+            const res = await api.post(baseUrl + '/todo/' + user_id + '/', formData);
+            console.log(res.data);
+            Swal.fire({
+                title: "Todo Added",
+                icon: "success",
+                toast: true,
+                timer: 2000,
+                position: "top-right",
+                timerProgressBar: true,
             });
+            fetchTodos();
+            setCreateTodo({ title: "", deadline: "", completed: "" });
         } catch (error) {
             console.log(error);
         }
@@ -100,18 +101,28 @@ function Todo() {
                                     <input
                                         id="todo-input"
                                         name='title'
-                                        onChange={handleNewTodoTitle}
+                                        onChange={handleNewTodoChange}
                                         value={createTodo.title}
                                         type="text"
                                         className="form-control"
                                         placeholder='Write a todo...'
                                     />
                                 </div>
+                                <div className="form-group flex-fill mb-2">
+                                    <input
+                                        id="deadline-input"
+                                        name='deadline'
+                                        onChange={handleNewTodoChange}
+                                        value={createTodo.deadline}
+                                        type="date"
+                                        className="form-control"
+                                        placeholder='Deadline...'
+                                    />
+                                </div>
                                 <button type="button" onClick={formSubmit} className="btn btn-primary mb-2 ml-2"> Add todo </button>
                             </div>
                             <div className="row" id="todo-container">
                                 {todo.map((todoItem) =>
-
                                     <div className="col col-12 p-2 todo-item" key={todoItem.id}>
                                         <div className="input-group">
                                             {todoItem.completed.toString() === "true" &&
@@ -120,14 +131,14 @@ function Todo() {
                                             {todoItem.completed.toString() === "false" &&
                                                 <p className="form-control">{todoItem.title}</p>
                                             }
+                                            <p className="form-control">Deadline: {new Date(todoItem.deadline).toLocaleDateString()}</p>
                                             <div className="input-group-append">
-                                                <button className="btn bg-success text-white ml-2" type="button" id="button-addon2 " onClick={() => markTodoAsComplete(todoItem.id)}><i className='fas fa-check' ></i></button>
-                                                <button className="btn bg-danger text-white me-2 ms-2 ml-2" type="button" id="button-addon2 " onClick={() => deleteTodo(todoItem.id)}><i className='fas fa-trash' ></i></button>
+                                                <button className="btn bg-success text-white ml-2" type="button" onClick={() => markTodoAsComplete(todoItem.id)}><i className='fas fa-check' ></i></button>
+                                                <button className="btn bg-danger text-white me-2 ms-2 ml-2" type="button" onClick={() => deleteTodo(todoItem.id)}><i className='fas fa-trash' ></i></button>
                                             </div>
                                         </div>
                                     </div>
                                 )}
-
                             </div>
                         </div>
                     </div>
